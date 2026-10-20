@@ -4,6 +4,8 @@ export type SanctuaryAtmosphere = 'dawn' | 'ratri';
 
 export type MalaSize = 108 | 54 | 27 | number;
 
+export type ChimeSound = 'bell' | 'tanpura' | 'shankha' | 'silent';
+
 export interface Mantra {
   id: string;
   title: string;
@@ -37,6 +39,7 @@ export interface UserPreferences {
   dailyReminderEnabled: boolean;
   dailyReminderTime: string;
   soundEnabled: boolean; // v1: Bell only
+  chimeSound?: ChimeSound;
   tactilePulseEnabled: boolean;
   hasCompletedOnboarding: boolean;
   isPremium: boolean; // Free vs Japam Divine Premium
