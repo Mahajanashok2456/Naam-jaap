@@ -84,21 +84,21 @@ export default function ChantScreen() {
           >
             <Ionicons
               name="book-outline"
-              size={15}
+              size={16}
               color={isEyesClosedMode ? Colors.goldLight : Colors.primaryDark}
             />
-            <Text
-              style={[
-                styles.headerBtnPillText,
-                isEyesClosedMode && styles.headerBtnPillTextDark,
-              ]}
-            >
-              Mantras
-            </Text>
           </Pressable>
 
-          {/* Center Mantra Title */}
-          <View style={styles.headerTitleWrap}>
+          {/* Center Mantra Title with sacred stars from Stitch */}
+          <Pressable
+            onPress={() => router.push('/(tabs)/mantras')}
+            style={styles.headerTitleWrap}
+          >
+            <MaterialCommunityIcons
+              name="star-four-points"
+              size={13}
+              color={isEyesClosedMode ? 'rgba(240, 191, 96, 0.5)' : 'rgba(152, 71, 0, 0.5)'}
+            />
             <Text
               numberOfLines={1}
               style={[
@@ -109,9 +109,14 @@ export default function ChantScreen() {
             >
               {activeMantra.title}
             </Text>
-          </View>
+            <MaterialCommunityIcons
+              name="star-four-points"
+              size={13}
+              color={isEyesClosedMode ? 'rgba(240, 191, 96, 0.5)' : 'rgba(152, 71, 0, 0.5)'}
+            />
+          </Pressable>
 
-          {/* Quick Controls: Sound & Eyes-Closed */}
+          {/* Quick Controls: Sound */}
           <View style={styles.headerActions}>
             <Pressable
               onPress={toggleSound}
@@ -124,24 +129,8 @@ export default function ChantScreen() {
             >
               <Ionicons
                 name={preferences.soundEnabled ? 'volume-high-outline' : 'volume-mute-outline'}
-                size={20}
+                size={18}
                 color={isEyesClosedMode ? Colors.eyesClosedTextMuted : Colors.textMuted}
-              />
-            </Pressable>
-
-            <Pressable
-              onPress={toggleEyesClosed}
-              style={({ pressed }) => [
-                styles.iconBtn,
-                isEyesClosedMode && styles.iconBtnActive,
-                pressed && styles.pressed,
-              ]}
-              hitSlop={8}
-            >
-              <Ionicons
-                name={isEyesClosedMode ? 'eye-off' : 'eye-outline'}
-                size={20}
-                color={isEyesClosedMode ? '#FFFFFF' : Colors.textMuted}
               />
             </Pressable>
           </View>
@@ -293,7 +282,10 @@ const styles = StyleSheet.create({
   },
   headerTitleWrap: {
     flex: 1,
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
     paddingHorizontal: Spacing.sm,
   },
   headerTitle: {

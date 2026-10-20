@@ -1,6 +1,17 @@
 import React, { useMemo } from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
-import Svg, { Circle } from 'react-native-svg';
+import Svg, {
+  Circle,
+  Defs,
+  LinearGradient,
+  RadialGradient,
+  Stop,
+  G,
+  Path,
+  Rect,
+  Ellipse,
+  Line,
+} from 'react-native-svg';
 import { Colors, Typography, Spacing } from '../../constants/theme';
 
 interface MalaLoopProps {
@@ -15,6 +26,34 @@ interface MalaLoopProps {
   onTap: () => void;
 }
 
+// Exact 24 bead coordinates from Stitch Japam Counter Screen (based on 320x320 viewport)
+const STITCH_BEAD_COORDS = [
+  { cx: 160.0, cy: 24.0 },
+  { cx: 194.2, cy: 28.4 },
+  { cx: 226.3, cy: 41.3 },
+  { cx: 254.2, cy: 62.0 },
+  { cx: 276.0, cy: 89.4 },
+  { cx: 289.9, cy: 121.9 },
+  { cx: 294.9, cy: 157.0 },
+  { cx: 290.7, cy: 192.2 },
+  { cx: 277.6, cy: 225.0 },
+  { cx: 256.4, cy: 253.0 },
+  { cx: 228.9, cy: 274.5 },
+  { cx: 197.0, cy: 288.3 },
+  { cx: 162.8, cy: 293.9 },
+  { cx: 128.0, cy: 290.4 },
+  { cx: 95.3, cy: 278.4 },
+  { cx: 66.8, cy: 258.1 },
+  { cx: 44.5, cy: 231.0 },
+  { cx: 30.0, cy: 198.8 },
+  { cx: 24.1, cy: 163.6 },
+  { cx: 27.2, cy: 128.4 },
+  { cx: 39.2, cy: 95.3 },
+  { cx: 59.8, cy: 66.9 },
+  { cx: 87.6, cy: 45.2 },
+  { cx: 120.9, cy: 31.2 },
+];
+
 export const MalaLoop: React.FC<MalaLoopProps> = ({
   currentBead,
   totalBeads = 108,
@@ -26,131 +65,148 @@ export const MalaLoop: React.FC<MalaLoopProps> = ({
   size = 320,
   onTap,
 }) => {
-  const centerCoord = size / 2;
-  const circleRadius = size * 0.42; // ~134px on 320px
-  const innerDiskDiameter = size * 0.68; // ~218px on 320px
-
-  // Number of visual bead markers around the circumference
-  const totalDisplayBeads = totalBeads <= 54 ? totalBeads : 36;
-  const progressRatio = totalBeads > 0 ? Math.min(1, currentBead / totalBeads) : 0;
-
-  // Circumference for SVG stroke progress
-  const strokeRadius = circleRadius;
-  const circumference = 2 * Math.PI * strokeRadius;
-  const strokeDashoffset = circumference - progressRatio * circumference;
-
-  // Generate bead positions along the circle
-  const beadMarkers = useMemo(() => {
-    return Array.from({ length: totalDisplayBeads }).map((_, index) => {
-      // Index 0 starts at top (12 o'clock = -PI/2)
-      const angle = (index / totalDisplayBeads) * 2 * Math.PI - Math.PI / 2;
-      const x = centerCoord + circleRadius * Math.cos(angle);
-      const y = centerCoord + circleRadius * Math.sin(angle);
-
-      // Equivalent bead count for this visual marker
-      const beadValue = Math.round((index / totalDisplayBeads) * totalBeads);
-      const isCompleted = currentBead > 0 && beadValue <= currentBead;
-      const isCurrent =
-        currentBead > 0 &&
-        Math.abs(beadValue - currentBead) <= Math.ceil(totalBeads / totalDisplayBeads / 2);
-      const isGuruBead = index === 0;
-
-      return {
-        index,
-        x,
-        y,
-        isCompleted,
-        isCurrent,
-        isGuruBead,
-      };
-    });
-  }, [totalDisplayBeads, totalBeads, currentBead, centerCoord, circleRadius]);
+  const innerDiskDiameter = size * 0.69; // ~220px on 320px
+  const scale = size / 320;
+  const activeBeadsCount = Math.min(24, Math.floor((currentBead / totalBeads) * 24));
 
   return (
     <View style={[styles.container, { width: size, height: size }]}>
-      {/* Outer subtle mandala rings */}
+      {/* Background Multi-layered Sacred Warm Ambient Lighting */}
       <View
         style={[
-          styles.outerMandalaRing,
-          { width: size, height: size, borderRadius: size / 2 },
-          isEyesClosed && styles.outerMandalaRingDark,
-        ]}
-      />
-      <View
-        style={[
-          styles.innerMandalaRing,
+          styles.ambientHalo,
           {
-            width: size - 16,
-            height: size - 16,
-            borderRadius: (size - 16) / 2,
-            top: 8,
-            left: 8,
+            width: size * 1.15,
+            height: size * 1.15,
+            borderRadius: (size * 1.15) / 2,
           },
-          isEyesClosed && styles.innerMandalaRingDark,
+          isEyesClosed && styles.ambientHaloDark,
         ]}
       />
 
-      {/* SVG Circular Progress Track */}
+      {/* SVG Mala Ring with Beads & Sacred Geometry matching Stitch */}
       <Svg
         width={size}
         height={size}
+        viewBox="0 0 320 320"
         style={StyleSheet.absoluteFill}
         pointerEvents="none"
       >
-        {/* Background track */}
+        <Defs>
+          <LinearGradient id="sutraCordGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <Stop offset="0%" stopColor="#D99636" />
+            <Stop offset="50%" stopColor="#AA621A" />
+            <Stop offset="100%" stopColor="#6B3808" />
+          </LinearGradient>
+
+          <RadialGradient id="beadActive3D" cx="36%" cy="32%" rx="68%" ry="68%">
+            <Stop offset="0%" stopColor="#FFF6E5" />
+            <Stop offset="22%" stopColor="#FFB74D" />
+            <Stop offset="65%" stopColor="#BD4D00" />
+            <Stop offset="90%" stopColor="#782900" />
+            <Stop offset="100%" stopColor="#421200" />
+          </RadialGradient>
+
+          <RadialGradient id="beadPending3D" cx="35%" cy="30%" rx="70%" ry="70%">
+            <Stop offset="0%" stopColor="#FFF0D6" />
+            <Stop offset="25%" stopColor="#D6A974" />
+            <Stop offset="65%" stopColor="#96663E" />
+            <Stop offset="92%" stopColor="#613D21" />
+            <Stop offset="100%" stopColor="#3A2110" />
+          </RadialGradient>
+
+          <RadialGradient id="guruBead3D" cx="32%" cy="28%" rx="72%" ry="72%">
+            <Stop offset="0%" stopColor="#FFFDF5" />
+            <Stop offset="20%" stopColor="#FFE082" />
+            <Stop offset="55%" stopColor="#D48B17" />
+            <Stop offset="85%" stopColor="#8C4F00" />
+            <Stop offset="100%" stopColor="#4E2800" />
+          </RadialGradient>
+
+          <RadialGradient id="binduCapGrad" cx="35%" cy="35%" rx="65%" ry="65%">
+            <Stop offset="0%" stopColor="#FFE082" />
+            <Stop offset="70%" stopColor="#C87D17" />
+            <Stop offset="100%" stopColor="#5D3300" />
+          </RadialGradient>
+        </Defs>
+
+        {/* Sutra Cord Base and Braided Texture */}
+        <Circle cx={160} cy={160} r={136} fill="none" stroke="#F3DEC4" strokeWidth={1} opacity={0.4} />
         <Circle
-          cx={centerCoord}
-          cy={centerCoord}
-          r={strokeRadius}
+          cx={160}
+          cy={160}
+          r={136}
           fill="none"
-          stroke={isEyesClosed ? '#343025' : '#FCF3E2'}
-          strokeWidth={5}
+          stroke="url(#sutraCordGrad)"
+          strokeWidth={3}
+          strokeLinecap="round"
+          strokeDasharray="3.5 1.5"
         />
 
-        {/* Active glowing saffron progress arc */}
-        {progressRatio > 0 && (
-          <Circle
-            cx={centerCoord}
-            cy={centerCoord}
-            r={strokeRadius}
-            fill="none"
-            stroke={Colors.primary}
-            strokeWidth={5.5}
-            strokeLinecap="round"
-            strokeDasharray={circumference}
-            strokeDashoffset={strokeDashoffset}
-            transform={`rotate(-90 ${centerCoord} ${centerCoord})`}
-          />
-        )}
+        {/* 24 Realistic 3D Beads around perimeter */}
+        <G id="malaBeadsReal">
+          {STITCH_BEAD_COORDS.map((coord, i) => {
+            const isActive = i <= activeBeadsCount;
+            const isCurrentLead = i === activeBeadsCount;
+
+            if (isActive) {
+              return (
+                <G key={i}>
+                  <Circle
+                    cx={coord.cx}
+                    cy={coord.cy}
+                    r={isCurrentLead ? 8.0 : 7.2}
+                    fill="url(#beadActive3D)"
+                    stroke={isCurrentLead ? '#FFF8EE' : undefined}
+                    strokeWidth={isCurrentLead ? 1.5 : undefined}
+                  />
+                  <Ellipse
+                    cx={coord.cx - 2.2}
+                    cy={coord.cy - 2.4}
+                    rx={isCurrentLead ? 2.8 : 2.4}
+                    ry={isCurrentLead ? 1.9 : 1.6}
+                    fill="#FFF9F0"
+                    opacity={isCurrentLead ? 0.8 : 0.65}
+                  />
+                </G>
+              );
+            } else {
+              return (
+                <G key={i}>
+                  <Circle cx={coord.cx} cy={coord.cy} r={6.8} fill="url(#beadPending3D)" />
+                  <Ellipse
+                    cx={coord.cx - 2.0}
+                    cy={coord.cy - 2.2}
+                    rx={2.0}
+                    ry={1.3}
+                    fill="#FFF7EB"
+                    opacity={0.4}
+                  />
+                </G>
+              );
+            }
+          })}
+        </G>
+
+        {/* Guru Meru Bead & Sacred Tassel at the Top */}
+        <G id="guruMeruBead">
+          <Path d="M154,6 C155,-5 165,-5 166,6 L164,12 L156,12 Z" fill="url(#sutraCordGrad)" />
+          <Path d="M154,-3 L147,-16 L173,-16 L166,-3 Z" fill="#E27814" />
+          <Path d="M147,-16 Q160,-20 173,-16 L177,-24 Q160,-28 143,-24 Z" fill="#BD5700" />
+          <Line x1={148} y1={-2} x2={142} y2={-18} stroke="#F5A623" strokeWidth={0.8} />
+          <Line x1={153} y1={-2} x2={150} y2={-22} stroke="#FFD066" strokeWidth={1} />
+          <Line x1={160} y1={-2} x2={160} y2={-24} stroke="#FFE499" strokeWidth={1.2} />
+          <Line x1={167} y1={-2} x2={170} y2={-22} stroke="#FFD066" strokeWidth={1} />
+          <Line x1={172} y1={-2} x2={178} y2={-18} stroke="#F5A623" strokeWidth={0.8} />
+          <Rect x={153} y={-5} width={14} height={3.5} rx={1.7} fill="#FFDB7A" stroke="#A45700" strokeWidth={0.5} />
+          <Ellipse cx={160} cy={15} rx={5} ry={3} fill="url(#binduCapGrad)" stroke="#FFE8B3" strokeWidth={0.7} />
+          <Circle cx={160} cy={24} r={11} fill="url(#guruBead3D)" stroke="#FFF4DC" strokeWidth={1.6} />
+          <Ellipse cx={156.8} cy={20.4} rx={3.8} ry={2.3} fill="#FFFFFF" opacity={0.85} />
+          <Circle cx={160} cy={24} r={3.8} fill="none" stroke="#9B5706" strokeWidth={0.9} strokeDasharray="1.5 1.5" />
+        </G>
       </Svg>
 
-      {/* Render individual Mala Beads along the track */}
-      {beadMarkers.map((b) => {
-        const beadSize = b.isGuruBead ? 14 : b.isCompleted ? 10 : 8;
-        return (
-          <View
-            key={b.index}
-            style={[
-              styles.bead,
-              {
-                left: b.x - beadSize / 2,
-                top: b.y - beadSize / 2,
-                width: beadSize,
-                height: beadSize,
-                borderRadius: beadSize / 2,
-              },
-              b.isGuruBead && styles.guruBead,
-              b.isCompleted && styles.completedBead,
-              b.isCurrent && styles.currentBeadGlow,
-              isEyesClosed && !b.isCompleted && styles.beadDark,
-            ]}
-          >
-            {b.isGuruBead && <View style={styles.guruPinnacle} />}
-          </View>
-        );
-      })}
-
-      {/* Central Interactive Disk */}
+      {/* Central Interactive Disk - Exact Stitch Parchment Disc */}
       <Pressable
         onPress={onTap}
         style={({ pressed }) => [
@@ -164,17 +220,33 @@ export const MalaLoop: React.FC<MalaLoopProps> = ({
           pressed && styles.centerDiskPressed,
         ]}
       >
-        {/* Mantra Script Line */}
-        <Text
-          numberOfLines={1}
+        {/* Inset Border */}
+        <View
           style={[
-            styles.scriptText,
-            scriptFont ? { fontFamily: scriptFont } : undefined,
-            isEyesClosed && styles.scriptTextEyesClosed,
+            styles.insetBorder,
+            {
+              width: innerDiskDiameter - 20,
+              height: innerDiskDiameter - 20,
+              borderRadius: (innerDiskDiameter - 20) / 2,
+            },
           ]}
-        >
-          {scriptText}
-        </Text>
+        />
+
+        {/* Mantra Script Line Flanked by Saffron Dots */}
+        <View style={styles.scriptRow}>
+          <View style={styles.scriptDot} />
+          <Text
+            numberOfLines={1}
+            style={[
+              styles.scriptText,
+              scriptFont ? { fontFamily: scriptFont } : undefined,
+              isEyesClosed && styles.scriptTextEyesClosed,
+            ]}
+          >
+            {scriptText}
+          </Text>
+          <View style={styles.scriptDot} />
+        </View>
 
         {/* Main Tabular Counter Number */}
         <Text
@@ -186,7 +258,7 @@ export const MalaLoop: React.FC<MalaLoopProps> = ({
           {currentBead}
         </Text>
 
-        {/* Total Chants Label */}
+        {/* of 108 Chants */}
         <Text
           style={[
             styles.totalChantsLabel,
@@ -196,13 +268,24 @@ export const MalaLoop: React.FC<MalaLoopProps> = ({
           of {totalBeads} Chants
         </Text>
 
-        {/* Round Indicator Badge */}
+        {/* Round Indicator Badge with Individual Round Dots */}
         <View
           style={[
             styles.roundBadge,
             isEyesClosed && styles.roundBadgeEyesClosed,
           ]}
         >
+          <View style={styles.roundDotsRow}>
+            {Array.from({ length: totalRounds }).map((_, rIdx) => (
+              <View
+                key={rIdx}
+                style={[
+                  styles.roundDot,
+                  rIdx < currentRound ? styles.roundDotFilled : styles.roundDotEmpty,
+                ]}
+              />
+            ))}
+          </View>
           <Text
             style={[
               styles.roundBadgeText,
@@ -223,97 +306,65 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     position: 'relative',
   },
-  outerMandalaRing: {
+  ambientHalo: {
     position: 'absolute',
-    borderWidth: 1,
-    borderColor: 'rgba(212, 166, 74, 0.25)',
+    backgroundColor: 'rgba(232, 117, 26, 0.08)',
   },
-  outerMandalaRingDark: {
-    borderColor: 'rgba(212, 166, 74, 0.12)',
-  },
-  innerMandalaRing: {
-    position: 'absolute',
-    borderWidth: 1,
-    borderStyle: 'dashed',
-    borderColor: 'rgba(222, 193, 177, 0.35)',
-  },
-  innerMandalaRingDark: {
-    borderColor: 'rgba(87, 66, 55, 0.35)',
-  },
-  bead: {
-    position: 'absolute',
-    backgroundColor: '#EAD5A8',
-  },
-  beadDark: {
-    backgroundColor: 'rgba(87, 66, 55, 0.6)',
-  },
-  completedBead: {
-    backgroundColor: Colors.primary,
-    shadowColor: Colors.primary,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.6,
-    shadowRadius: 5,
-    elevation: 3,
-  },
-  currentBeadGlow: {
-    borderWidth: 2,
-    borderColor: '#FFDEA5',
-    transform: [{ scale: 1.25 }],
-  },
-  guruBead: {
-    backgroundColor: Colors.goldDark,
-    borderWidth: 2,
-    borderColor: Colors.primary,
-    zIndex: 10,
-    shadowColor: Colors.primary,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.4,
-    shadowRadius: 4,
-    elevation: 4,
-  },
-  guruPinnacle: {
-    position: 'absolute',
-    top: -5,
-    alignSelf: 'center',
-    width: 4,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: Colors.primary,
+  ambientHaloDark: {
+    backgroundColor: 'rgba(232, 117, 26, 0.04)',
   },
   centerDisk: {
     justifyContent: 'center',
     alignItems: 'center',
     padding: Spacing.md,
-    borderWidth: 1.5,
+    borderWidth: 1,
+    position: 'relative',
   },
   centerDiskDawn: {
-    backgroundColor: Colors.surface,
+    backgroundColor: '#FFFDF9',
     borderColor: 'rgba(222, 193, 177, 0.45)',
     shadowColor: '#5A1A12',
     shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.1,
-    shadowRadius: 18,
+    shadowOpacity: 0.12,
+    shadowRadius: 20,
     elevation: 6,
   },
   centerDiskEyesClosed: {
-    backgroundColor: 'rgba(31, 27, 17, 0.95)',
+    backgroundColor: '#1F1B11',
     borderColor: 'rgba(87, 66, 55, 0.4)',
     shadowColor: '#000000',
     shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.35,
     shadowRadius: 16,
     elevation: 4,
   },
   centerDiskPressed: {
     transform: [{ scale: 0.985 }],
-    opacity: 0.92,
+    opacity: 0.94,
+  },
+  insetBorder: {
+    position: 'absolute',
+    borderWidth: 1,
+    borderColor: 'rgba(222, 193, 177, 0.25)',
+  },
+  scriptRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 2,
+    zIndex: 10,
+  },
+  scriptDot: {
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: 'rgba(152, 71, 0, 0.45)',
   },
   scriptText: {
     fontFamily: Typography.fontDevanagariSerifSemiBold,
-    fontSize: 14,
-    color: '#7B5800',
-    letterSpacing: 0.5,
-    marginBottom: 2,
+    fontSize: 13,
+    color: 'rgba(150, 71, 59, 0.85)',
+    letterSpacing: 1.5,
     textAlign: 'center',
   },
   scriptTextEyesClosed: {
@@ -321,44 +372,68 @@ const styles = StyleSheet.create({
   },
   beadCounterNumber: {
     fontFamily: Typography.fontPlayfair,
-    fontSize: 60,
+    fontSize: 50,
     fontWeight: '600',
-    color: Colors.textSecondary,
-    lineHeight: 66,
+    color: '#96473b',
+    lineHeight: 56,
     textAlign: 'center',
+    zIndex: 10,
   },
   beadCounterNumberEyesClosed: {
-    color: Colors.primaryLight,
+    color: '#FFB68A',
   },
   totalChantsLabel: {
-    fontFamily: Typography.fontSans,
-    fontSize: 12,
-    fontWeight: '500',
-    color: Colors.textTertiary,
+    fontFamily: Typography.fontSansSemiBold,
+    fontSize: 11,
+    fontWeight: '600',
+    color: 'rgba(150, 71, 59, 0.65)',
+    letterSpacing: 1.2,
+    textTransform: 'uppercase',
     marginTop: 2,
     textAlign: 'center',
+    zIndex: 10,
   },
   totalChantsLabelEyesClosed: {
     color: Colors.eyesClosedTextMuted,
   },
   roundBadge: {
     marginTop: Spacing.sm,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: 3,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
     borderRadius: 9999,
-    backgroundColor: Colors.surfaceWarm,
+    backgroundColor: 'rgba(246, 237, 220, 0.8)',
     borderWidth: 1,
     borderColor: 'rgba(222, 193, 177, 0.5)',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    zIndex: 10,
   },
   roundBadgeEyesClosed: {
     backgroundColor: Colors.eyesClosedBorder,
     borderColor: 'rgba(212, 166, 74, 0.3)',
   },
+  roundDotsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  roundDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+  },
+  roundDotFilled: {
+    backgroundColor: '#984700',
+  },
+  roundDotEmpty: {
+    backgroundColor: 'rgba(222, 193, 177, 0.55)',
+  },
   roundBadgeText: {
     fontFamily: Typography.fontSansSemiBold,
     fontSize: 11,
     fontWeight: '600',
-    color: '#7B5800',
+    color: 'rgba(150, 71, 59, 0.9)',
     letterSpacing: 0.4,
   },
   roundBadgeTextEyesClosed: {
